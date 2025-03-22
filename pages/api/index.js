@@ -37,13 +37,13 @@ export default async function handler(req, res) {
     if (err) return res.status(500).json({ error: 'Form parse error' });
 
     const question = fields.question;
-    const file = files.file;
+    const uploaded = Array.isArray(files.file) ? files.file[0] : files.file;
 
-    if (!question || !file) {
+    if (!question || !uploaded) {
       return res.status(400).json({ error: 'Missing question or file' });
     }
 
-    const zipPath = file.filepath || file.path;
+    const zipPath = uploaded.filepath || uploaded.path;
     if (!zipPath) {
       return res.status(400).json({ error: 'Uploaded file path is missing.' });
     }
