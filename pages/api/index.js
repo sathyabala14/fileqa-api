@@ -14,10 +14,12 @@ function findCsvFileRecursive(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
+    console.log('Checking:', fullPath);
     if (entry.isDirectory()) {
       const found = findCsvFileRecursive(fullPath);
       if (found) return found;
     } else if (entry.name.toLowerCase().endsWith('.csv')) {
+      console.log('Found CSV:', fullPath);
       return fullPath;
     }
   }
@@ -53,6 +55,9 @@ export default async function handler(req, res) {
       await fs.createReadStream(zipPath)
         .pipe(unzipper.Extract({ path: dir }))
         .promise();
+
+      const allFiles = fs.readdirSync(dir);
+      console.log('Files after unzip:', allFiles);
 
       const csvPath = findCsvFileRecursive(dir);
 
