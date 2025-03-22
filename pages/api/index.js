@@ -29,15 +29,26 @@ export default async function handler(req, res) {
 
     const zipPath = file.filepath;
     const dir = fs.mkdtempSync(path.join('/tmp', 'unzipped-'));
-    
+
     let answer = '';
 
     try {
+      console.log('Zip path:', zipPath);
+      console.log('Unzipping to:', dir);
+
       await fs.createReadStream(zipPath)
         .pipe(unzipper.Extract({ path: dir }))
         .promise();
 
-      const csvPath = path.join(dir, 'extract.csv');
+      const files = fs.readdirSync(dir);
+      const csvFile = files.find(f => f.toLowerCase().endsWith('.csv'));
+
+      if (!csvFile) {
+        return res.status(400).json({ error: 'No CSV file found in zip.' });
+      }
+
+      const csvPath = path.join(dir, csvFile);
+      console.log('CSV path to read:', csvPath);
 
       await new Promise((resolve, reject) => {
         fs.createReadStream(csvPath)
@@ -51,9 +62,13 @@ export default async function handler(req, res) {
           .on('error', reject);
       });
 
+      if (!answer) {
+        return res.status(400).json({ error: 'Answer column not found or empty.' });
+      }
+
       return res.status(200).json({ answer });
-    } catch (e) {
-      console.error('Processing error:', e);
+    } catch (err) {
+      console.error('Processing error:', err);
       return res.status(500).json({ error: 'Error processing file' });
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
