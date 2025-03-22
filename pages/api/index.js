@@ -53,6 +53,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ answer });
     } catch (e) {
+      console.error('Processing error:', e);
       return res.status(500).json({ error: 'Error processing file' });
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
