@@ -10,6 +10,20 @@ export const config = {
   },
 };
 
+function findCsvFileRecursive(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const found = findCsvFileRecursive(fullPath);
+      if (found) return found;
+    } else if (entry.name.toLowerCase().endsWith('.csv')) {
+      return fullPath;
+    }
+  }
+  return null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -40,14 +54,12 @@ export default async function handler(req, res) {
         .pipe(unzipper.Extract({ path: dir }))
         .promise();
 
-      const files = fs.readdirSync(dir);
-      const csvFile = files.find(f => f.toLowerCase().endsWith('.csv'));
+      const csvPath = findCsvFileRecursive(dir);
 
-      if (!csvFile) {
+      if (!csvPath) {
         return res.status(400).json({ error: 'No CSV file found in zip.' });
       }
 
-      const csvPath = path.join(dir, csvFile);
       console.log('CSV path to read:', csvPath);
 
       await new Promise((resolve, reject) => {
