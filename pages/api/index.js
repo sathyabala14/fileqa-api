@@ -43,7 +43,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing question or file' });
     }
 
-    const zipPath = file.filepath;
+    const zipPath = file.filepath || file.path;
+    if (!zipPath) {
+      return res.status(400).json({ error: 'Uploaded file path is missing.' });
+    }
     const dir = fs.mkdtempSync(path.join('/tmp', 'unzipped-'));
 
     let answer = '';
