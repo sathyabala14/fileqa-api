@@ -28,8 +28,8 @@ export default async function handler(req, res) {
     }
 
     const zipPath = file.filepath;
-    const dir = fs.mkdtempSync(path.join(process.cwd(), 'tmp-'));
-
+    const dir = fs.mkdtempSync(path.join('/tmp', 'unzipped-'));
+    
     let answer = '';
 
     try {
